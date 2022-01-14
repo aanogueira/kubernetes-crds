@@ -15,7 +15,8 @@ type KafkaTopicInterface interface {
 	Get(name string, options metav1.GetOptions) (*v1.KafkaTopic, error)
 	Create(*v1.KafkaTopic) (*v1.KafkaTopic, error)
 	Watch(opts metav1.ListOptions) (watch.Interface, error)
-	// ...
+	Delete(name string, options *metav1.DeleteOptions) error
+	DeleteCollection(options *metav1.DeleteOptions, listOptions metav1.ListOptions) error
 }
 
 type kafkaTopicClient struct {
@@ -71,4 +72,30 @@ func (c *kafkaTopicClient) Watch(opts metav1.ListOptions) (watch.Interface, erro
 		Resource("kafkatopics").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Watch(context.Background())
+}
+
+func (c *kafkaTopicClient) Delete(name string, options *metav1.DeleteOptions) error {
+	err := c.restClient.
+		Delete().
+		Namespace(c.ns).
+		Resource("kafkatopics").
+		Name(name).
+		Body(options).
+		Do(context.Background()).
+		Error()
+
+	return err
+}
+
+func (c *kafkaTopicClient) DeleteCollection(options *metav1.DeleteOptions, listOptions metav1.ListOptions) error {
+	err := c.restClient.
+		Delete().
+		Namespace(c.ns).
+		Resource("kafkatopics").
+		VersionedParams(&listOptions, scheme.ParameterCodec).
+		Body(options).
+		Do(context.Background()).
+		Error()
+
+	return err
 }
